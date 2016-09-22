@@ -1,8 +1,8 @@
 apply plugin: 'com.android.library'
-//apply plugin: 'com.github.dcendents.android-maven'
-//apply plugin: 'com.jfrog.bintray'
-//
-//version = "1.0.1"   // #修改# // 这里是aar的版本号
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
+
+version = "1.0.1"   // #修改# // 这里是aar的版本号
 
 android {
     compileSdkVersion 24
@@ -36,6 +36,79 @@ dependencies {
     compile files('libs/org.apache.http.legacy.jar')
 }
 
-//// 根节点添加
-//def siteUrl = 'https://github.com/openproject/LessCode'    // project homepage
-//def gitUrl = 'https://github.com/openproject/LessCode.git' // project git
+// 根节点添加
+def siteUrl = 'https://github.com/DiskyZhs/MultiformAsyncHttpClient'    // project homepage
+def gitUrl = 'https://github.com/DiskyZhs/MultiformAsyncHttpClient.git' // project git
+
+group = "com.dream.catcher"             // #修改# // 组名称，这个相当于依赖的时候 compile 'com.bigkoo:
+
+// 根节点添加:定义pom并打包aar
+install {
+    repositories.mavenInstaller {
+        // This generates POM.xml with proper parameters
+        pom {
+            project {
+                packaging 'aar'
+                name 'MultiformAsyncHttpClient For Android'                                   // #修改# // 标题
+                url siteUrl
+                // Set your license
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id 'DreamFlyer'                                           // #修改# // 你的userid，昵称
+                        name 'DreamFlyer'                                       // #修改# // 用户名
+                        email '543407793@qq.com'                               // #修改# // 邮箱
+                    }
+                }
+                scm {
+                    connection gitUrl
+                    developerConnection gitUrl
+                    url siteUrl
+                }
+            }
+        }
+    }
+}
+//打包javadocjar和sourcejar
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+
+//上传到Jcenter仓库
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+bintray {
+    user = properties.getProperty("bintray.user")
+    key = properties.getProperty("bintray.apikey")
+    // 上面两个 user和key 需要留意一下，在local.properites 里面配置的
+    configurations = ['archives']
+    pkg {
+        repo = "maven"
+        name = "MultiformAsyncHttpClient"                                                 // #修改# //  在 jcenter 上面的项目名字
+        websiteUrl = siteUrl
+        vcsUrl = gitUrl
+        licenses = ["Apache-2.0"]
+        publish = true
+    }
+}
